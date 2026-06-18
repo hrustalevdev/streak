@@ -2,7 +2,7 @@
 
 AI-агент на естественном языке для трекинга привычек. Принимает текстовые запросы, вызывает API через LangChain tools и возвращает ответ в фиксированном формате.
 
-**Стек:** TypeScript · LangGraph · claude-haiku-4-5 · Hono
+**Стек:** TypeScript · LangGraph · qwen3-32b (Groq) · Hono
 
 ---
 

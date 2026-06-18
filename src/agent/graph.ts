@@ -1,13 +1,14 @@
-import { ChatAnthropic } from "@langchain/anthropic";
+import { ChatGroq } from "@langchain/groq";
 import { AIMessage, SystemMessage } from "@langchain/core/messages";
 import { END, MessagesAnnotation, StateGraph } from "@langchain/langgraph";
 import { ToolNode } from "@langchain/langgraph/prebuilt";
 import { SYSTEM_PROMPT } from "./prompt.js";
 import { tools } from "./tools.js";
 
-const model = new ChatAnthropic({
-  model: "claude-haiku-4-5",
-  apiKey: process.env.ANTHROPIC_API_KEY,
+const model = new ChatGroq({
+  model: "qwen/qwen3-32b",
+  apiKey: process.env.GROQ_API_KEY,
+  temperature: 0,
 }).bindTools(tools);
 
 async function callModel(state: typeof MessagesAnnotation.State) {

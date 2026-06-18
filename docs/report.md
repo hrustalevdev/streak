@@ -2,17 +2,17 @@
 
 ## LLM
 
-**Модель:** `claude-haiku-4-5` (Anthropic)
+**Модель:** `qwen/qwen3-32b` (Groq)
 
 **Настройка:**
-1. Зарегистрироваться на [console.anthropic.com](https://console.anthropic.com)
+1. Зарегистрироваться на [console.groq.com](https://console.groq.com) (бесплатно, без карты)
 2. Создать API-ключ в разделе **API Keys**
 3. Скопировать `.env.example` в `.env` и вставить ключ:
 
 ```bash
 cp .env.example .env
 # Отредактировать .env:
-# ANTHROPIC_API_KEY=sk-ant-...
+# GROQ_API_KEY=gsk_...
 ```
 
 ---
@@ -59,16 +59,17 @@ npm run agent "ваш запрос на естественном языке"
 
 ### Запрос 1 — создание привычки (вызов API-tool)
 ```
-npm run agent "создай привычку читать книги"
+npm run agent "создай привычку медитация"
 ```
-**Ожидаемый API-метод:** `create_habit` → `POST /habits`
+**API-метод:** `list_habits` → `create_habit` → `POST /habits`
 
 ```
-[tool] create_habit → { id: '...', name: 'читать книги' }
+[tool] list_habits → []
+[tool] create_habit → { id: '5641a1d7-dd1b-41d9-8a29-3042be69cf72', name: 'медитация' }
 
 Status: success
-Action: Создана новая привычка "читать книги"
-Data: { "id": "...", "name": "читать книги" }
+Action: create_habit
+Data: {"id":"5641a1d7-dd1b-41d9-8a29-3042be69cf72","name":"медитация"}
 Errors: -
 ```
 
@@ -78,16 +79,15 @@ Errors: -
 ```
 npm run agent "отметь медитацию выполненной"
 ```
-**Ожидаемый API-метод:** `list_habits` → `create_habit` (если нет) → `mark_completion`
+**API-метод:** `list_habits` → `mark_completion` → `POST /habits/:id/completions`
 
 ```
-[tool] list_habits → []
-[tool] create_habit → { id: '...', name: 'Медитация' }
-[tool] mark_completion → { habitId: '...', date: '2026-06-18' }
+[tool] list_habits → [{ id: '5641a1d7-...', name: 'медитация', streak: 0 }]
+[tool] mark_completion → { habitId: '5641a1d7-...', date: '2026-06-17' }
 
 Status: success
-Action: Создана привычка "Медитация" и отмечено выполнение на сегодня (2026-06-18)
-Data: { "habitId": "...", "date": "2026-06-18" }
+Action: Отметил выполнение привычки "медитация" на сегодня
+Data: {"date": "2026-06-17"}
 Errors: -
 ```
 
@@ -97,14 +97,14 @@ Errors: -
 ```
 npm run agent "какой у меня стрик по медитации?"
 ```
-**Ожидаемый API-метод:** `list_habits` → `get_streak`
+**API-метод:** `list_habits` → streak берётся из ответа
 
 ```
-[tool] list_habits → [{ id: '...', name: 'Медитация', streak: 1 }]
+[tool] list_habits → [{ id: '5641a1d7-...', name: 'медитация', streak: 1 }]
 
 Status: success
-Action: Получен streak для привычки "Медитация"
-Data: streak = 1 день
+Action: get_streak
+Data: {"habitId":"5641a1d7-...","streak":1}
 Errors: -
 ```
 
@@ -114,14 +114,14 @@ Errors: -
 ```
 npm run agent "покажи все мои привычки"
 ```
-**Ожидаемый API-метод:** `list_habits`
+**API-метод:** `list_habits` → `GET /habits`
 
 ```
-[tool] list_habits → [{ id: '...', name: 'Медитация', streak: 3 }, ...]
+[tool] list_habits → [{ id: '5641a1d7-...', name: 'медитация', streak: 1 }]
 
 Status: success
-Action: Получен список всех привычек
-Data: Медитация — 3 дня, Бег — 1 день
+Action: list_habits
+Data: [{"id":"5641a1d7-...","name":"медитация","streak":1}]
 Errors: -
 ```
 
@@ -131,13 +131,13 @@ Errors: -
 ```
 npm run agent "что такое streak?"
 ```
-**API-tool не вызывается** — агент отвечает на основе своих знаний.
+**API-tool не вызывается** — агент отвечает на основе знаний модели.
 
 ```
-Status: success
-Action: Объяснение понятия streak
-Data: Streak — это количество дней подряд, в которые вы выполняли привычку без пропусков.
-Errors: -
+Streak — это количество дней подряд, в течение которых вы успешно выполнили
+определённую привычку. Например, если вы каждый день с 1 по 5 января делали
+зарядку, ваш streak составит 5 дней. Пропуск хотя бы одного дня сбрасывает
+счётчик до нуля.
 ```
 
 ---
@@ -151,8 +151,11 @@ Errors: -
 ```
 Ты — трекер привычек. Помогаешь пользователю отмечать выполнение привычек и следить за streak.
 
-У тебя есть tools для работы с API. Используй их для выполнения запросов.
-Если пользователь хочет отметить привычку, которой ещё нет — сначала создай её с помощью create_habit, затем отметь с помощью mark_completion.
+Правила работы с API:
+1. Перед созданием или отметкой привычки ВСЕГДА сначала вызови list_habits, чтобы проверить существующие привычки.
+2. Ищи привычку по названию (регистр неважен). Если нашёл — используй её id.
+3. Только если привычка не найдена в списке — создай её через create_habit.
+4. Для отметки выполнения используй mark_completion с id привычки.
 
 Всегда отвечай строго в формате:
 Status: success | error

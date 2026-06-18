@@ -14,7 +14,7 @@ services:
     build: .
     command: npx tsx src/main.ts
     environment:
-      - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY}
+      - GROQ_API_KEY=${GROQ_API_KEY}
       - API_BASE_URL=http://api:3000
       - QUERY=${QUERY}
     depends_on:
