@@ -1,0 +1,24 @@
+{
+  "name": "streak",
+  "version": "1.0.0",
+  "type": "module",
+  "scripts": {
+    "api": "tsx src/api/server.ts",
+    "agent": "tsx src/main.ts"
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.54.0",
+    "@hono/node-server": "^1.13.0",
+    "@langchain/anthropic": "^0.3.0",
+    "@langchain/core": "^0.3.0",
+    "@langchain/langgraph": "^0.2.0",
+    "dotenv": "^16.0.0",
+    "hono": "^4.0.0",
+    "zod": "^3.0.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "tsx": "^4.0.0",
+    "typescript": "^5.0.0"
+  }
+}
