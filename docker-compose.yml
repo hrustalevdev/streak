@@ -1,0 +1,22 @@
+services:
+  api:
+    build: .
+    command: npx tsx src/api/server.ts
+    ports:
+      - "3000:3000"
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:3000/habits"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+
+  agent:
+    build: .
+    command: npx tsx src/main.ts
+    environment:
+      - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY}
+      - API_BASE_URL=http://api:3000
+      - QUERY=${QUERY}
+    depends_on:
+      api:
+        condition: service_healthy
