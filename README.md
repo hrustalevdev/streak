@@ -2,7 +2,7 @@
 
 AI-агент на естественном языке для трекинга привычек. Принимает текстовые запросы, вызывает API через LangChain tools и возвращает ответ в фиксированном формате.
 
-**Стек:** TypeScript · LangGraph · qwen3-32b (Groq) · Hono
+**Стек:** TypeScript · LangGraph · GPT-OSS 120B (OpenRouter) · Hono
 
 ---
 
@@ -16,7 +16,7 @@ npm install
 
 # 2. Переменные окружения
 cp .env.example .env
-# Вставить ANTHROPIC_API_KEY из console.anthropic.com
+# Вставить OPENROUTER_API_KEY из openrouter.ai (бесплатно)
 
 # 3. Запустить mock API (терминал 1)
 npm run api
@@ -29,9 +29,13 @@ npm run agent "отметь медитацию выполненной"
 
 ```bash
 cp .env.example .env
-# Вставить ANTHROPIC_API_KEY
+# Вставить OPENROUTER_API_KEY из openrouter.ai
 
+docker compose up api -d
+
+QUERY="создай привычку медитация" docker compose run --rm agent
 QUERY="отметь медитацию выполненной" docker compose run --rm agent
+QUERY="покажи все мои привычки" docker compose run --rm agent
 ```
 
 ---
@@ -116,7 +120,7 @@ streak/
 
 | Переменная | Описание |
 |---|---|
-| `ANTHROPIC_API_KEY` | API-ключ из [console.anthropic.com](https://console.anthropic.com) |
+| `OPENROUTER_API_KEY` | API-ключ из [openrouter.ai](https://openrouter.ai) (бесплатно) |
 | `API_BASE_URL` | URL mock API (по умолчанию `http://localhost:3000`) |
 
 Секреты хранятся в `.env` (в репозиторий не коммитится). Шаблон: `.env.example`.

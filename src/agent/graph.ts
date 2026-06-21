@@ -1,13 +1,16 @@
-import { ChatGroq } from "@langchain/groq";
+import { ChatOpenAI } from "@langchain/openai";
 import { AIMessage, SystemMessage } from "@langchain/core/messages";
 import { END, MessagesAnnotation, StateGraph } from "@langchain/langgraph";
 import { ToolNode } from "@langchain/langgraph/prebuilt";
 import { SYSTEM_PROMPT } from "./prompt.js";
 import { tools } from "./tools.js";
 
-const model = new ChatGroq({
-  model: "qwen/qwen3-32b",
-  apiKey: process.env.GROQ_API_KEY,
+const model = new ChatOpenAI({
+  model: "openai/gpt-oss-120b:free",
+  apiKey: process.env.OPENROUTER_API_KEY,
+  configuration: {
+    baseURL: "https://openrouter.ai/api/v1",
+  },
   temperature: 0,
 }).bindTools(tools);
 

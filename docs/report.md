@@ -2,17 +2,17 @@
 
 ## LLM
 
-**Модель:** `qwen/qwen3-32b` (Groq)
+**Модель:** `openai/gpt-oss-120b:free` (OpenRouter)
 
 **Настройка:**
-1. Зарегистрироваться на [console.groq.com](https://console.groq.com) (бесплатно, без карты)
-2. Создать API-ключ в разделе **API Keys**
+1. Зарегистрироваться на [openrouter.ai](https://openrouter.ai) (бесплатно, без карты)
+2. Создать API-ключ в разделе **Keys**
 3. Скопировать `.env.example` в `.env` и вставить ключ:
 
 ```bash
 cp .env.example .env
 # Отредактировать .env:
-# GROQ_API_KEY=gsk_...
+# OPENROUTER_API_KEY=sk-or-...
 ```
 
 ---
