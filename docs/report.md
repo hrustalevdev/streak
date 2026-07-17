@@ -29,7 +29,7 @@ cp .env.example .env
 | Список привычек | `GET` | `/habits` |
 
 **Реализация API-tool:** `src/agent/tools.ts:L1–L75`
-Вывод результата каждого tool-вызова в консоль: `src/agent/tools.ts:L14, L26, L37, L47`
+Вывод результата каждого tool-вызова в консоль: `src/agent/tools.ts:L14, L32, L48, L64`
 
 **Контракт ответа агента:** `prompts/system.md` → раздел «Роль агента»
 
