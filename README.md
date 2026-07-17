@@ -2,13 +2,13 @@
 
 AI-агент на естественном языке для трекинга привычек. Принимает текстовые запросы, вызывает API через LangChain tools и возвращает ответ в фиксированном формате.
 
-**Стек:** TypeScript · LangGraph · GPT-OSS 120B (OpenRouter) · Hono
+**Стек:** TypeScript · LangGraph · Ollama (локально) / OpenRouter (облако) · Hono
 
 ---
 
 ## Быстрый старт
 
-### Вариант 1 — локально
+### Вариант 1 — локально, с локальной моделью через Ollama (по умолчанию)
 
 ```bash
 # 1. Зависимости
@@ -16,7 +16,9 @@ npm install
 
 # 2. Переменные окружения
 cp .env.example .env
-# Вставить OPENROUTER_API_KEY из openrouter.ai (бесплатно)
+# По умолчанию LLM_PROVIDER=ollama — нужен установленный и запущенный Ollama
+# с моделью, поддерживающей tool calling (см. таблицу ниже). Если Ollama
+# крутится не на этой машине — поменяйте OLLAMA_BASE_URL.
 
 # 3. Запустить mock API (терминал 1)
 npm run api
@@ -25,11 +27,22 @@ npm run api
 npm run agent "отметь медитацию выполненной"
 ```
 
-### Вариант 2 — Docker
+### Вариант 1b — локально, с облачной моделью через OpenRouter
 
 ```bash
 cp .env.example .env
-# Вставить OPENROUTER_API_KEY из openrouter.ai
+# В .env поставить LLM_PROVIDER=openrouter и вставить OPENROUTER_API_KEY
+# из openrouter.ai (бесплатно)
+
+npm run api        # терминал 1
+npm run agent "отметь медитацию выполненной"   # терминал 2
+```
+
+### Вариант 2 — Docker (облачная модель через OpenRouter)
+
+```bash
+cp .env.example .env
+# LLM_PROVIDER=openrouter, вставить OPENROUTER_API_KEY из openrouter.ai
 
 docker compose up api -d
 
@@ -37,6 +50,8 @@ QUERY="создай привычку медитация" docker compose run --rm
 QUERY="отметь медитацию выполненной" docker compose run --rm agent
 QUERY="покажи все мои привычки" docker compose run --rm agent
 ```
+
+> Локальная Ollama-модель в Docker не задействуется автоматически — контейнеру нужен сетевой доступ к хосту с Ollama (`OLLAMA_BASE_URL` в `.env`).
 
 ---
 
@@ -120,10 +135,24 @@ streak/
 
 | Переменная | Описание |
 |---|---|
-| `OPENROUTER_API_KEY` | API-ключ из [openrouter.ai](https://openrouter.ai) (бесплатно) |
 | `API_BASE_URL` | URL mock API (по умолчанию `http://localhost:3000`) |
+| `LLM_PROVIDER` | `ollama` (по умолчанию, локальная модель) или `openrouter` (облачная) |
+| `OLLAMA_BASE_URL` | OpenAI-совместимый эндпоинт Ollama (по умолчанию `http://localhost:11434/v1`, можно указать другую машину в сети) |
+| `OLLAMA_MODEL` | Модель в Ollama, обязательно с поддержкой tool calling (по умолчанию `qwen3.5:9b`, см. таблицу ниже) |
+| `OPENROUTER_API_KEY` | API-ключ из [openrouter.ai](https://openrouter.ai) (бесплатно), нужен только при `LLM_PROVIDER=openrouter` |
 
 Секреты хранятся в `.env` (в репозиторий не коммитится). Шаблон: `.env.example`.
+
+### Локальные модели: что проверено
+
+По результатам стресс-теста (`docs/progress.md`, раунд 2) на многошаговых цепочках tool-вызовов (list → create → mark):
+
+| Модель | Итог |
+|---|---|
+| `qwen3.5:9b` | ✅ Рекомендуется. Стабильно соблюдает порядок вызовов, не дублирует привычки, не выдумывает id |
+| `llama3.1:8b` | ⚠️ Не рекомендуется для этого проекта. Регулярно пропускает обязательный `list_habits`, дублирует привычки, в отдельных случаях подставляет в ответ несуществующие данные вместо реального результата tool-вызова |
+
+Модель обязательно должна поддерживать tool calling — проверить можно через `curl http://<host>:11434/api/tags` и посмотреть на `capabilities` (`tools` должно быть в списке).
 
 ---
 
