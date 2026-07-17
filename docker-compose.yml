@@ -14,7 +14,9 @@ services:
     build: .
     command: npx tsx src/main.ts
     environment:
-      - LLM_PROVIDER=openrouter
+      - LLM_PROVIDER=${LLM_PROVIDER:-openrouter}
+      - OLLAMA_BASE_URL=${OLLAMA_BASE_URL}
+      - OLLAMA_MODEL=${OLLAMA_MODEL}
       - OPENROUTER_API_KEY=${OPENROUTER_API_KEY}
       - API_BASE_URL=http://api:3000
       - QUERY=${QUERY}

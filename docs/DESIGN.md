@@ -240,8 +240,15 @@ flowchart LR
         Agent["agent<br/>CLI, разовый запуск<br/>QUERY env"]
         API["api<br/>Hono mock API<br/>:3000"]
     end
+    Ollama["Ollama<br/>(хост или другая машина в LAN)<br/>LLM_PROVIDER=ollama"]
+    OpenRouter["OpenRouter<br/>(облако)<br/>LLM_PROVIDER=openrouter"]
+
     Agent -->|HTTP| API
+    Agent -.->|OLLAMA_BASE_URL| Ollama
+    Agent -.->|OPENROUTER_API_KEY| OpenRouter
 ```
+
+Проверено вживую (см. `docs/progress.md`, раунд 3): контейнер `agent` без дополнительной настройки сети достаёт LAN-адрес Ollama на другой машине. Если Ollama крутится на хосте, где запущен сам Docker — нужен `host.docker.internal` вместо `localhost`.
 
 ```bash
 # Преподаватель клонирует репо, создаёт .env и запускает:

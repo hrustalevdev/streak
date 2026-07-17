@@ -38,11 +38,13 @@ npm run api        # терминал 1
 npm run agent "отметь медитацию выполненной"   # терминал 2
 ```
 
-### Вариант 2 — Docker (облачная модель через OpenRouter)
+### Вариант 2 — Docker, с локальной моделью через Ollama
+
+Проверено вживую: контейнер `agent` достаёт `OLLAMA_BASE_URL`/`OLLAMA_MODEL` из `.env` так же, как локальный запуск — сеть не изолирована, обычный Docker bridge выпускает контейнер в LAN и на хост.
 
 ```bash
 cp .env.example .env
-# LLM_PROVIDER=openrouter, вставить OPENROUTER_API_KEY из openrouter.ai
+# LLM_PROVIDER=ollama (по умолчанию), OLLAMA_BASE_URL указывает на машину с Ollama
 
 docker compose up api -d
 
@@ -51,7 +53,17 @@ QUERY="отметь медитацию выполненной" docker compose ru
 QUERY="покажи все мои привычки" docker compose run --rm agent
 ```
 
-> Локальная Ollama-модель в Docker не задействуется автоматически — контейнеру нужен сетевой доступ к хосту с Ollama (`OLLAMA_BASE_URL` в `.env`).
+> **`OLLAMA_BASE_URL=http://localhost:...` внутри контейнера работать не будет** — `localhost` там означает сам контейнер. Если Ollama крутится на этой же машине, что и Docker (не в контейнере), используйте `http://host.docker.internal:11434/v1` (Docker Desktop на macOS/Windows поддерживает это из коробки). Если Ollama на другой машине в сети (как в нашем тесте — домашний десктоп) — обычный LAN-IP, например `http://192.168.1.10:11434/v1`, работает без дополнительной настройки.
+
+### Вариант 2b — Docker, с облачной моделью через OpenRouter
+
+```bash
+cp .env.example .env
+# LLM_PROVIDER=openrouter, вставить OPENROUTER_API_KEY из openrouter.ai
+
+docker compose up api -d
+QUERY="покажи все мои привычки" docker compose run --rm agent
+```
 
 ---
 
