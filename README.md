@@ -90,16 +90,12 @@ Mock API поднимается локально на `http://localhost:3000`.
 
 ## Архитектура агента
 
-```
-Запрос пользователя
-       ↓
-  [agent node] — LLM решает: вызвать tool или ответить
-       ↓ (если есть tool_calls)
-  [tools node] — HTTP-вызов к API
-       ↓
-  [agent node] — видит результат, принимает следующее решение
-       ↓ (нет tool_calls)
-     Ответ
+```mermaid
+flowchart TD
+    A([Запрос пользователя]) --> B{agent node}
+    B -->|есть tool_calls| C["tools node<br/>HTTP-вызов к API"]
+    C --> B
+    B -->|нет tool_calls| D([Ответ])
 ```
 
 Реализован ручной `StateGraph` (`src/agent/graph.ts`) с явными узлами и рёбрами.

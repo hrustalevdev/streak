@@ -55,6 +55,20 @@ Errors: <описание ошибки, или "-" если ошибок нет>
 2. Если не найдена → `create_habit` → получить id
 3. `mark_completion` с полученным id
 
+```mermaid
+flowchart TD
+    A[list_habits] --> B{Привычка найдена по названию?}
+    B -->|да| C[mark_completion с найденным id]
+    B -->|нет| D[create_habit] --> C
+```
+
 Запрос "Какой стрик по бегу?":
 1. `list_habits` → найти привычку, взять streak из ответа
 2. Или `get_streak` если id уже известен
+
+```mermaid
+flowchart TD
+    Q["Какой стрик по привычке?"] --> H{id уже известен?}
+    H -->|нет| L[list_habits] --> F["Найти привычку по названию,<br/>взять streak из ответа"]
+    H -->|да| G[get_streak по id]
+```

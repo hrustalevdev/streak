@@ -94,18 +94,31 @@ const completions = new Map<string, Date[]>(); // habitId → отсортиро
 3. Идём назад, пока каждая следующая дата = предыдущая − 1 день
 4. Возвращаем счётчик
 
+```mermaid
+flowchart TD
+    A{Есть отметки?} -->|нет| Z[streak = 0]
+    A -->|да| B{Сегодня есть в датах?}
+    B -->|да| C[якорь = сегодня]
+    B -->|нет| D{Вчера есть в датах?}
+    D -->|нет| Z
+    D -->|да| E[якорь = вчера]
+    C --> F[streak = 0]
+    E --> F
+    F --> G{якорь есть в датах?}
+    G -->|да| H["streak += 1<br/>якорь -= 1 день"]
+    H --> G
+    G -->|нет| I([Вернуть streak])
+    Z --> I
+```
+
 ### Граф агента (LangGraph)
 
-```
-START
-  ↓
-[узел agent] — LLM решает: вызвать tool или завершить
-  ↓ (если есть tool_calls)
-[узел tools] — выполняет HTTP-вызов, добавляет результат в историю сообщений
-  ↓
-[узел agent] — LLM видит результат, принимает следующее решение
-  ↓ (нет tool_calls → завершение)
-END
+```mermaid
+flowchart TD
+    Start([START]) --> Agent{agent}
+    Agent -->|есть tool_calls| Tools["tools<br/>HTTP-вызов, результат → в историю сообщений"]
+    Tools --> Agent
+    Agent -->|нет tool_calls| End([END])
 ```
 
 Реализация:
@@ -134,6 +147,22 @@ const graph = new StateGraph(MessagesAnnotation)
 | `list_habits` | `GET /habits` | Возвращает все привычки со streak'ами |
 
 Логика агента для "Отметь медитацию": вызвать `list_habits` → найти по названию → если не найдена, вызвать `create_habit` → затем вызвать `mark_completion`.
+
+```mermaid
+sequenceDiagram
+    actor U as Пользователь
+    participant Agent as agent node (LLM)
+    participant API as Mock API
+
+    U->>Agent: "Отметь медитацию выполненной"
+    Agent->>API: list_habits()
+    API-->>Agent: [] (привычка не найдена)
+    Agent->>API: create_habit("медитация")
+    API-->>Agent: { id, name: "медитация" }
+    Agent->>API: mark_completion(id)
+    API-->>Agent: { habitId, date }
+    Agent-->>U: Status / Action / Data / Errors
+```
 
 ### Системный Prompt
 
@@ -204,6 +233,15 @@ API_BASE_URL=http://localhost:3000
 Два контейнера:
 - `api` — Hono mock API на порту 3000
 - `agent` — принимает запрос через `QUERY` env-переменную
+
+```mermaid
+flowchart LR
+    subgraph compose [Docker Compose]
+        Agent["agent<br/>CLI, разовый запуск<br/>QUERY env"]
+        API["api<br/>Hono mock API<br/>:3000"]
+    end
+    Agent -->|HTTP| API
+```
 
 ```bash
 # Преподаватель клонирует репо, создаёт .env и запускает:

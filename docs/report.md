@@ -1,5 +1,19 @@
 # Отчёт: Streak — трекер привычек на LangGraph
 
+## Архитектура (кратко)
+
+```mermaid
+flowchart TD
+    A([Запрос пользователя]) --> B{agent node}
+    B -->|есть tool_calls| C["tools node<br/>HTTP-вызов к API"]
+    C --> B
+    B -->|нет tool_calls| D([Ответ])
+```
+
+Подробнее — `docs/DESIGN.md`.
+
+---
+
 ## LLM
 
 **Модель:** `openai/gpt-oss-120b:free` (OpenRouter)
